@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="id"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Halaman Guru — Try Out TKA Seri Kabupaten</title>
+<style>
+:root{
+  --bg:#f1f2f6; --surface:#ffffff; --surface-muted:#eef0f4;
+  --text:#1c1c22; --muted:#6b6b76; --border:#e0e2e9;
+  --accent:#4f46e5; --on-accent:#ffffff; --focus:#4f46e5;
+  --shadow:rgba(20,20,40,.10); --ok:#1f9d63; --bad:#e5484d; --gold:#c9a227;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b0b10; --surface:#17171d; --surface-muted:#23232c;
+    --text:#f4f4f6; --muted:#a2a2b0; --border:#34343e;
+    --accent:#818cf8; --on-accent:#0b0b10; --focus:#818cf8;
+    --shadow:rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  min-height:100vh;padding:22px 14px}
+#g-root{width:100%;max-width:1080px;margin:0 auto}
+.g-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 4px 18px var(--shadow)}
+h2.g-title{font-size:22px;font-weight:800;text-align:center;margin:0 0 4px}
+.g-sub{text-align:center;color:var(--muted);font-size:13px;margin:0 0 14px;line-height:1.55}
+.g-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px}
+.g-input,.g-select{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface-muted);color:var(--text);font-size:15px;font-weight:600}
+.g-input:focus,.g-select:focus{outline:2px solid var(--focus);outline-offset:1px}
+.g-btn{width:100%;padding:14px;border:none;border-radius:14px;background:var(--accent);color:var(--on-accent);font-size:16px;font-weight:800;cursor:pointer;margin-top:16px}
+.g-btn.sm{width:auto;padding:9px 16px;font-size:13.5px;margin-top:0}
+.g-btn.ghost{background:var(--surface-muted);color:var(--text);border:1px solid var(--border)}
+.g-err{min-height:20px;text-align:center;font-weight:700;font-size:13px;color:var(--bad);margin-top:10px}
+.g-dd{position:relative}
+.g-ddlist{position:absolute;top:100%;left:0;right:0;max-height:260px;overflow-y:auto;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;margin-top:4px;z-index:60;display:none;box-shadow:0 8px 24px var(--shadow)}
+.g-dditem{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border)}
+.g-dditem:last-child{border-bottom:none}
+.g-dditem b{display:block;font-size:14px}
+.g-dditem span{font-size:11px;color:var(--muted)}
+.g-ddempty{padding:14px;text-align:center;color:var(--muted);font-size:13px}
+.g-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.g-meta b{font-size:17px}
+.g-meta span{font-size:12.5px;color:var(--muted);display:block;margin-top:2px}
+.g-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 6px}
+.g-tab{flex:1;min-width:130px;padding:10px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-muted);color:var(--text);font-weight:700;font-size:13px;cursor:pointer}
+.g-tab.sel{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.g-filters{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.g-filters .g-input,.g-filters .g-select{flex:1;min-width:140px;padding:10px 12px;font-size:14px}
+.g-stats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.g-stat{flex:1;min-width:110px;background:var(--surface-muted);border-radius:12px;padding:10px;text-align:center}
+.g-stat b{font-size:19px;display:block}
+.g-stat span{font-size:11px;color:var(--muted)}
+.g-tablewrap{overflow-x:auto;margin-top:6px}
+table.g-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:620px}
+table.g-table.matrix{min-width:960px}
+table.g-table th{background:var(--surface-muted);padding:10px 8px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.03em;border-bottom:2px solid var(--border);white-space:nowrap}
+table.g-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:top}
+table.g-table td.num,table.g-table th.num{text-align:center}
+.g-nilai{font-weight:800;font-size:15px;white-space:nowrap}
+.g-empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:14px;line-height:1.6}
+.g-mut{color:var(--muted);font-size:12px}
+.g-top{font-weight:800;color:var(--gold);font-size:16px}
+.g-sectiontitle{font-size:16px;font-weight:800;margin:22px 0 4px}
+.g-toolbar{display:flex;justify-content:flex-end;margin-top:10px}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<div id="g-root"><div class="g-card" id="g-body"></div></div>
+<script>
+(function(){
+"use strict";
+var MASTER_PIN="112233"; /* PIN master guru — ganti di sini bila perlu */
+var COLLECTION="tryout_tka_kabupaten";
+var MATERI=["Bilangan Dasar","Bilangan Lanjutan & Aljabar Awal","Aljabar","Geometri Datar","Geometri Lanjutan & Bangun Ruang","Data dan Peluang"];
+/* Daftar SMP se-Kabupaten Pacitan (nama, NPSN, kecamatan) — sumber: data publik Kemendikdasmen 2026 */
+var SCHOOLS=[
+["SMP NEGERI 1 PACITAN","20510976","Pacitan"],
+["SMP NEGERI 2 PACITAN","20510956","Pacitan"],
+["SMP NEGERI 3 PACITAN","20510947","Pacitan"],
+["SMP NEGERI 4 PACITAN","20510949","Pacitan"],
+["SMP NEGERI 5 PACITAN SATU ATAP","20570232","Pacitan"],
+["SMP PGRI PACITAN","20511063","Pacitan"],
+["SMP ISLAM TERPADU AR-RAHMAH","20574716","Pacitan"],
+["SMP MODEL AL-ISTIQOMAH PACITAN","20555834","Pacitan"],
+["SMP ISLAM NAHDLATUSSUBBAN","20570463","Pacitan"],
+["SMP NEGERI 1 KEBONAGUNG","20510967","Kebonagung"],
+["SMP NEGERI 2 KEBONAGUNG","20510969","Kebonagung"],
+["SMP NEGERI 3 KEBONAGUNG SATU ATAP","20573297","Kebonagung"],
+["SMP PGRI KEBONAGUNG","20511075","Kebonagung"],
+["SMP NEGERI 1 PUNUNG","20510974","Punung"],
+["SMP NEGERI 2 PUNUNG","20510944","Punung"],
+["SMP NEGERI 3 PUNUNG","20510954","Punung"],
+["SMP NEGERI 1 PRINGKUKU","20510975","Pringkuku"],
+["SMP NEGERI 2 PRINGKUKU","20510945","Pringkuku"],
+["SMP NEGERI 3 PRINGKUKU","20510955","Pringkuku"],
+["SMP PGRI SUGIHWARAS","20510965","Pringkuku"],
+["SMP MUHAMMADIYAH BOARDING SCHOOL PRINGKUKU","70014702","Pringkuku"],
+["SMP NEGERI 1 DONOROJO","20510959","Donorojo"],
+["SMP NEGERI 2 DONOROJO","20510970","Donorojo"],
+["SMP NEGERI 3 DONOROJO","20510939","Donorojo"],
+["SMP NEGERI 4 DONOROJO SATU ATAP","20540380","Donorojo"],
+["SMP PGRI GENDARAN","20511077","Donorojo"],
+["SMP NEGERI 1 NAWANGAN","20510968","Nawangan"],
+["SMP NEGERI 2 NAWANGAN","20510958","Nawangan"],
+["SMP NEGERI 3 NAWANGAN","20510938","Nawangan"],
+["SMP NEGERI 4 NAWANGAN","20510950","Nawangan"],
+["SMP PGRI GONDANG","20511076","Nawangan"],
+["SMP ISLAM TERPADU AL BANNA NAWANGAN","70004101","Nawangan"],
+["SMP NEGERI 1 BANDAR","20510960","Bandar"],
+["SMP NEGERI 2 BANDAR","20510971","Bandar"],
+["SMP NEGERI 3 BANDAR","20510940","Bandar"],
+["SMP NEGERI 4 BANDAR SATU ATAP","20557250","Bandar"],
+["SMP ISLAM TERPADU MA ARIF BANDAR","69760669","Bandar"],
+["SMP PGRI BANDAR","20511078","Bandar"],
+["SMP NEGERI 1 TEGALOMBO","20511021","Tegalombo"],
+["SMP NEGERI 2 TEGALOMBO","20510942","Tegalombo"],
+["SMP NEGERI 3 TEGALOMBO","20510952","Tegalombo"],
+["SMP NEGERI 4 TEGALOMBO SATU ATAP","20573296","Tegalombo"],
+["SMP NEGERI 5 TEGALOMBO SATU ATAP","69766201","Tegalombo"],
+["SMP HASYIM ASY'ARI KASIHAN","20570231","Tegalombo"],
+["SMP MUHAMMADIYAH 3","20511081","Tegalombo"],
+["SMP PGRI TEGALOMBO","20510964","Tegalombo"],
+["SMP NEGERI 1 TULAKAN","20511009","Tulakan"],
+["SMP NEGERI 2 TULAKAN","20510941","Tulakan"],
+["SMP NEGERI 3 TULAKAN","20510951","Tulakan"],
+["SMP NEGERI 4 TULAKAN","20510948","Tulakan"],
+["SMP HASYIM ASY ARI TULAKAN","20511064","Tulakan"],
+["SMP MUHAMMADIYAH 2 TULAKAN","20511073","Tulakan"],
+["SMP PGRI MONTONGAN","20511074","Tulakan"],
+["SMP PGRI TULAKAN","20510963","Tulakan"],
+["SMP NEGERI 1 NGADIROJO","20510937","Ngadirojo"],
+["SMP NEGERI 2 NGADIROJO","20510957","Ngadirojo"],
+["SMP NEGERI 3 NGADIROJO","20510946","Ngadirojo"],
+["SMP NEGERI 4 NGADIROJO SATU ATAP","20540381","Ngadirojo"],
+["SMP NEGERI 5 NGADIROJO SATU ATAP","20557251","Ngadirojo"],
+["SMP MIFTAHUL HUDA","20511072","Ngadirojo"],
+["SMP MUHAMMADIYAH 1 NGADIROJO","20511080","Ngadirojo"],
+["SMP NEGERI 1 SUDIMORO","20510973","Sudimoro"],
+["SMP NEGERI 2 SUDIMORO","20510943","Sudimoro"],
+["SMP NEGERI 3 SUDIMORO","20510953","Sudimoro"],
+["SMP NEGERI 4 SUDIMORO SATU ATAP","20549693","Sudimoro"],
+["SMP NEGERI 5 SUDIMORO SATU ATAP","20570242","Sudimoro"],
+["SMP NEGERI 6 SUDIMORO","69831500","Sudimoro"],
+["SMP NEGERI 1 ARJOSARI","20510961","Arjosari"],
+["SMP NEGERI 2 ARJOSARI","20510972","Arjosari"],
+["SMP NEGERI 3 ARJOSARI SATU ATAP","20549692","Arjosari"],
+["SMP NEGERI 4 ARJOSARI SATU ATAP","20573295","Arjosari"],
+["SMP PGRI ARJOSARI","20511079","Arjosari"]
+];
+var FB=null;
+try{
+  firebase.initializeApp({
+    apiKey: "AIzaSyCRJo9Xou0X9K3ZGlvmArtUOod9ohR4lQk",
+    authDomain: "database-mpi-spendaka.firebaseapp.com",
+    projectId: "database-mpi-spendaka",
+    storageBucket: "database-mpi-spendaka.firebasestorage.app",
+    messagingSenderId: "909550540115",
+    appId: "1:909550540115:web:efcbb3efc2d138306bfda6"
+  });
+  FB=firebase.firestore();
+}catch(e){FB=null;}
+
+var G={authed:false,role:null,sekolah:null,rows:[],loading:false,error:null,
+  tab:"matriks",kelasFilter:"",namaSearch:"",materiFilter:MATERI[0],adminSekolah:"__all"};
+try{
+  var auth=JSON.parse(sessionStorage.getItem("guru_auth")||"null");
+  if(auth&&(auth.role==="admin"||auth.role==="sekolah")){
+    G.authed=true;G.role=auth.role;G.sekolah=auth.sekolah||null;
+  }
+}catch(e){}
+
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function fmtNilai(n){return (Math.round(n*10)/10).toFixed(1).replace(".",",");}
+function fmtDur(sec){
+  if(sec==null)return "-";
+  sec=Math.max(0,Math.round(sec));
+  var m=Math.floor(sec/60),d=sec%60;
+  return m+" m "+(d<10?"0":"")+d+" d";
+}
+function fmtWaktu(ts){
+  if(!ts)return "-";
+  try{
+    var d=ts.toDate?ts.toDate():new Date(ts);
+    return d.toLocaleDateString("id-ID",{day:"numeric",month:"short"})+" "+d.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+  }catch(e){return "-";}
+}
+function num(v){var n=Number(v);return isNaN(n)?0:n;}
+function nilaiOf(r){var v=(r.nilai!=null?r.nilai:r.skor);return num(v);}
+function studentKey(r){
+  return (r.nama||"").trim().toLowerCase()+"|"+(r.kelas||"")+"|"+(r.sekolah||"").trim().toLowerCase();
+}
+function schoolComboHTML(id,inputId,listId,val){
+  return '<div class="g-dd" id="'+id+'"><input id="'+inputId+'" class="g-input" type="text" autocomplete="off" placeholder="Ketik untuk cari sekolah..." value="'+esc(val||"")+'"><div id="'+listId+'" class="g-ddlist"></div></div>';
+}
+function setupCombo(wrapId,inputId,listId,onPick,initial){
+  var inp=document.getElementById(inputId),list=document.getElementById(listId);
+  if(!inp||!list)return;
+  var selected=initial||"";
+  function matches(q){
+    var query=(q||"").trim().toLowerCase();
+    return SCHOOLS.filter(function(s){return !query||s[0].toLowerCase().indexOf(query)>=0||s[2].toLowerCase().indexOf(query)>=0;}).slice(0,60);
+  }
+  function draw(){
+    var m=matches(inp.value);
+    list.innerHTML=m.length?m.map(function(s){
+      return '<div class="g-dditem" data-v="'+esc(s[0])+'"><b>'+esc(s[0])+'</b><span>Kec. '+esc(s[2])+"</span></div>";
+    }).join(""):'<div class="g-ddempty">Sekolah tidak ditemukan</div>';
+    list.style.display="block";
+  }
+  inp.addEventListener("input",draw);
+  inp.addEventListener("focus",draw);
+  list.addEventListener("click",function(e){
+    var it=e.target.closest(".g-dditem");if(!it)return;
+    selected=it.getAttribute("data-v");inp.value=selected;list.style.display="none";
+    if(onPick)onPick(selected);
+  });
+  document.addEventListener("click",function(e){
+    var w=document.getElementById(wrapId);
+    if(w&&!w.contains(e.target))list.style.display="none";
+  });
+  function get(){return selected;}
+  function set(v){selected=v;inp.value=v||"";}
+  return{get:get,set:set};
+}
+var loginCombo=null,dashCombo=null;
+
+function renderLogin(err){
+  document.getElementById("g-body").innerHTML=
+    '<h2 class="g-title">📊 Rekap Nilai Try Out TKA</h2>'+
+    '<p class="g-sub"><b>Seri Kabupaten</b> — Halaman Guru<br>Pilih sekolahmu, lalu masukkan PIN (NPSN sekolah). PIN master berlaku untuk melihat semua sekolah.</p>'+
+    '<div class="g-label">Nama Sekolah</div>'+schoolComboHTML("g-ldd","g-sekolah-input","g-sekolah-list","")+
+    '<div class="g-label">PIN (NPSN / PIN Master)</div>'+
+    '<input id="g-pin" class="g-input" type="password" inputmode="numeric" placeholder="Masukkan PIN...">'+
+    '<button class="g-btn" id="g-login-btn">Masuk</button>'+
+    '<div class="g-err">'+(err?esc(err):"")+"</div>";
+  loginCombo=setupCombo("g-ldd","g-sekolah-input","g-sekolah-list",null,"");
+  document.getElementById("g-login-btn").addEventListener("click",tryLogin);
+  document.getElementById("g-pin").addEventListener("keydown",function(e){if(e.key==="Enter")tryLogin();});
+}
+function tryLogin(){
+  var pin=document.getElementById("g-pin").value.trim();
+  var sekolah=loginCombo?loginCombo.get():"";
+  if(pin===MASTER_PIN){
+    G.authed=true;G.role="admin";G.sekolah=null;
+  }else{
+    var found=SCHOOLS.filter(function(s){return s[0]===sekolah&&s[1]===pin;})[0];
+    if(!found){renderLogin("Sekolah atau PIN tidak cocok. PIN sekolah adalah nomor NPSN.");return;}
+    G.authed=true;G.role="sekolah";G.sekolah=found[0];
+  }
+  try{sessionStorage.setItem("guru_auth",JSON.stringify({role:G.role,sekolah:G.sekolah}));}catch(e){}
+  loadData();
+}
+function loadData(){
+  if(!FB){G.error="Database tidak terhubung.";renderDash();return;}
+  G.loading=true;renderDash();
+  FB.collection(COLLECTION).orderBy("createdAt","desc").limit(3000).get()
+    .then(function(snap){
+      G.rows=[];
+      snap.forEach(function(doc){G.rows.push(doc.data());});
+      G.loading=false;G.error=null;renderDash();
+    })
+    .catch(function(e){G.loading=false;G.error="Gagal memuat data: "+(e.message||e);renderDash();});
+}
+function scopedRows(){
+  if(G.role==="sekolah")return G.rows.filter(function(r){return r.sekolah===G.sekolah;});
+  if(G.adminSekolah&&G.adminSekolah!=="__all")return G.rows.filter(function(r){return r.sekolah===G.adminSekolah;});
+  return G.rows.slice();
+}
+function filteredRows(){
+  var rows=scopedRows();
+  if(G.kelasFilter)rows=rows.filter(function(r){return String(r.kelas||"").indexOf(G.kelasFilter)===0;});
+  if(G.namaSearch){
+    var q=G.namaSearch.trim().toLowerCase();
+    rows=rows.filter(function(r){return (r.nama||"").toLowerCase().indexOf(q)>=0;});
+  }
+  return rows;
+}
+/* Peta nilai terbaik per siswa per materi */
+function bestMap(rows){
+  var map=new Map();
+  rows.forEach(function(r){
+    var k=studentKey(r);
+    if(!map.has(k))map.set(k,{nama:r.nama||"",kelas:r.kelas||"",sekolah:r.sekolah||"",bests:{},counts:{}});
+    var s=map.get(k),m=r.mode||"";
+    s.counts[m]=(s.counts[m]||0)+1;
+    var v=nilaiOf(r);
+    if(s.bests[m]==null||v>s.bests[m])s.bests[m]=v;
+  });
+  return map;
+}
+function avgBest(s){
+  var vals=MATERI.map(function(m){return s.bests[m];}).filter(function(v){return v!=null;});
+  if(!vals.length)return 0;
+  return vals.reduce(function(a,b){return a+b;},0)/vals.length;
+}
+function matrixRows(){
+  var map=bestMap(filteredRows());
+  var arr=Array.from(map.values());
+  arr.sort(function(a,b){return avgBest(b)-avgBest(a)||a.nama.localeCompare(b.nama);});
+  return arr;
+}
+/* ===== Export Excel (.xlsx asli, tanpa dependensi) ===== */
+function crc32(bytes){
+  var table=crc32._t;
+  if(!table){
+    table=[];
+    for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);table[n]=c>>>0;}
+    crc32._t=table;
+  }
+  var crc=0xFFFFFFFF;
+  for(var i=0;i<bytes.length;i++)crc=table[(crc^bytes[i])&0xFF]^(crc>>>8);
+  return (crc^0xFFFFFFFF)>>>0;
+}
+function zipStore(files){
+  var enc=new TextEncoder();
+  var chunks=[],central=[];var offset=0;
+  function u16(n){return [n&0xFF,(n>>>8)&0xFF];}
+  function u32(n){return [n&0xFF,(n>>>8)&0xFF,(n>>>16)&0xFF,(n>>>24)&0xFF];}
+  files.forEach(function(f){
+    var name=enc.encode(f.name),data=f.data,crc=crc32(data);
+    var lh=[].concat(u32(0x04034b50),u16(20),u16(0x0800),u16(0),u16(0),u16(0x21),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0));
+    chunks.push(new Uint8Array(lh),name,data);
+    var ch=[].concat(u32(0x02014b50),u16(20),u16(20),u16(0x0800),u16(0),u16(0),u16(0x21),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+    central.push(new Uint8Array(ch),name);
+    offset+=lh.length+name.length+data.length;
+  });
+  var cdSize=0;central.forEach(function(c){cdSize+=c.length;});
+  var end=new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cdSize),u32(offset),u16(0)));
+  return new Blob(chunks.concat(central,[end]),{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+}
+function xmlEsc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function colName(i){var s="";i++;while(i>0){var m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26);}return s;}
+function makeXLSX(header,rows,sheetName){
+  var enc=new TextEncoder();
+  function cellXml(ref,val){
+    if(val==null||val==="")return '<c r="'+ref+'"/>';
+    if(typeof val==="number")return '<c r="'+ref+'"><v>'+val+"</v></c>";
+    return '<c r="'+ref+'" t="inlineStr"><is><t xml:space="preserve">'+xmlEsc(val)+"</t></is></c>";
+  }
+  var all=[header].concat(rows);
+  var sheetRows=all.map(function(row,ri){
+    var cells=row.map(function(v,ci){return cellXml(colName(ci)+(ri+1),v);}).join("");
+    return '<row r="'+(ri+1)+'">'+cells+"</row>";
+  }).join("");
+  var widths=header.map(function(h,i){
+    var w=String(h).length+4;
+    rows.forEach(function(r){if(r[i]!=null)w=Math.max(w,String(r[i]).length+2);});
+    return '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+Math.min(48,Math.max(10,w))+'" customWidth="1"/>';
+  }).join("");
+  var sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>'+widths+'</cols><sheetData>'+sheetRows+'</sheetData></worksheet>';
+  var wb='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+xmlEsc(sheetName||"Sheet1")+'" sheetId="1" r:id="rId1"/></sheets></workbook>';
+  var ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>';
+  var rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  var wbRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>';
+  return zipStore([
+    {name:"[Content_Types].xml",data:enc.encode(ct)},
+    {name:"_rels/.rels",data:enc.encode(rels)},
+    {name:"xl/workbook.xml",data:enc.encode(wb)},
+    {name:"xl/_rels/workbook.xml.rels",data:enc.encode(wbRels)},
+    {name:"xl/worksheets/sheet1.xml",data:enc.encode(sheet)}
+  ]);
+}
+function exportExcel(){
+  var header=["Nama","Kelas","Sekolah"].concat(MATERI);
+  var data=matrixRows().map(function(s){
+    return [s.nama,s.kelas,s.sekolah].concat(MATERI.map(function(m){
+      return s.bests[m]!=null?Math.round(s.bests[m]*10)/10:null;
+    }));
+  });
+  var blob=makeXLSX(header,data,"Rekap Nilai");
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;a.download="rekap-nilai-tryout-tka-kabupaten.xlsx";
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},400);
+}
+
+function renderDash(){
+  var body=document.getElementById("g-body");
+  var title=G.role==="admin"?"Semua Sekolah (Admin)":esc(G.sekolah);
+  var h='<div class="g-meta"><div><b>📊 Rekap Nilai Try Out TKA — Seri Kabupaten</b><span>'+title+"</span></div>"+
+    '<div><button class="g-btn sm ghost" id="g-refresh">↻ Muat Ulang</button> '+
+    '<button class="g-btn sm ghost" id="g-logout">Keluar</button></div></div>';
+  if(G.role==="admin"){
+    h+='<div class="g-label">Filter Sekolah</div>'+schoolComboHTML("g-ddd","g-dash-input","g-dash-list",G.adminSekolah==="__all"?"":G.adminSekolah)+
+      '<p class="g-mut">Kosongkan / pilih “Semua Sekolah” lewat tombol di bawah untuk melihat seluruh kabupaten.</p>'+
+      '<button class="g-btn sm" id="g-all-schools">Semua Sekolah</button>';
+  }
+  h+='<div class="g-tabs">'+
+    [["matriks","🧮 Matriks Nilai"],["peringkat","🏆 Peringkat per Materi"],["semua","📋 Semua Percobaan"],["kabupaten","🌍 Rekap Kabupaten"]].map(function(t){
+      return '<button class="g-tab'+(G.tab===t[0]?" sel":"")+'" data-tab="'+t[0]+'">'+t[1]+"</button>";
+    }).join("")+"</div>";
+  if(G.tab!=="kabupaten"){
+    h+='<div class="g-filters">'+
+      '<input id="g-search" class="g-input" type="text" placeholder="🔍 Cari nama siswa..." value="'+esc(G.namaSearch)+'">'+
+      '<select id="g-kelas" class="g-select"><option value="">Semua Kelas</option>'+
+      ["7","8","9"].map(function(k){return '<option value="'+k+'"'+(G.kelasFilter===k?" selected":"")+">Kelas "+k+"</option>";}).join("")+
+      "</select></div>";
+  }
+  if(G.loading)h+='<div class="g-empty">⏳ Memuat data nilai...</div>';
+  else if(G.error)h+='<div class="g-empty">⚠️ '+esc(G.error)+"</div>";
+  else if(G.tab==="matriks")h+=matrixHTML();
+  else if(G.tab==="peringkat")h+=peringkatHTML();
+  else if(G.tab==="semua")h+=semuaHTML();
+  else h+=kabupatenHTML();
+  body.innerHTML=h;
+  document.getElementById("g-refresh").addEventListener("click",loadData);
+  document.getElementById("g-logout").addEventListener("click",function(){
+    try{sessionStorage.removeItem("guru_auth");}catch(e){}
+    G.authed=false;G.rows=[];renderLogin();
+  });
+  body.querySelectorAll("[data-tab]").forEach(function(b){
+    b.addEventListener("click",function(){G.tab=b.getAttribute("data-tab");renderDash();});
+  });
+  if(G.role==="admin"){
+    dashCombo=setupCombo("g-ddd","g-dash-input","g-dash-list",function(v){G.adminSekolah=v;renderDash();},G.adminSekolah==="__all"?"":G.adminSekolah);
+    var allBtn=document.getElementById("g-all-schools");
+    if(allBtn)allBtn.addEventListener("click",function(){G.adminSekolah="__all";renderDash();});
+  }
+  var srch=document.getElementById("g-search");
+  if(srch)srch.addEventListener("input",function(){G.namaSearch=srch.value;refreshTableOnly();});
+  var kls=document.getElementById("g-kelas");
+  if(kls)kls.addEventListener("change",function(){G.kelasFilter=kls.value;refreshTableOnly();});
+  bindTabControls();
+}
+function refreshTableOnly(){
+  var wrap=document.getElementById("g-table-zone");if(!wrap){renderDash();return;}
+  if(G.tab==="matriks")wrap.innerHTML=matrixHTML();
+  else if(G.tab==="peringkat")wrap.innerHTML=peringkatHTML();
+  else if(G.tab==="semua")wrap.innerHTML=semuaHTML();
+  bindTabControls();
+}
+function bindTabControls(){
+  var matSel=document.getElementById("g-materi-sel");
+  if(matSel)matSel.addEventListener("change",function(){G.materiFilter=matSel.value;refreshTableOnly();});
+  var exp=document.getElementById("g-export");
+  if(exp)exp.addEventListener("click",exportExcel);
+}
+function statsHTML(rows,students){
+  var schools=new Set(rows.map(function(r){return r.sekolah;})).size;
+  return '<div class="g-stats">'+
+    '<div class="g-stat"><b>'+rows.length+'</b><span>Total Percobaan</span></div>'+
+    '<div class="g-stat"><b>'+students+'</b><span>Siswa Unik</span></div>'+
+    '<div class="g-stat"><b>'+schools+'</b><span>Sekolah</span></div></div>';
+}
+function matrixHTML(){
+  var rows=filteredRows();
+  var arr=matrixRows();
+  var h='<div id="g-table-zone-inner">';
+  h+=statsHTML(rows,arr.length);
+  h+='<div class="g-toolbar"><button class="g-btn sm" id="g-export">⬇ Export Excel</button></div>';
+  if(!arr.length)return h+'<div class="g-empty">Belum ada nilai pada cakupan ini.<br>Siswa yang sudah menyelesaikan try out akan muncul di sini.</div></div>';
+  h+='<div class="g-tablewrap"><table class="g-table matrix"><tr><th>Nama</th><th>Kelas</th><th>Sekolah</th>'+
+    MATERI.map(function(m){return '<th class="num">'+esc(m)+"</th>";}).join("")+"</tr>";
+  arr.forEach(function(s){
+    h+="<tr><td><b>"+esc(s.nama)+"</b></td><td>"+esc(s.kelas)+"</td><td>"+esc(s.sekolah)+"</td>"+
+      MATERI.map(function(m){
+        return s.bests[m]!=null
+          ? '<td class="num"><span class="g-nilai">'+fmtNilai(s.bests[m])+'</span><br><span class="g-mut">'+s.counts[m]+"× main</span></td>"
+          : '<td class="num" style="color:var(--muted)">—</td>';
+      }).join("")+"</tr>";
+  });
+  h+="</table></div>";
+  h+='<p class="g-mut">Setiap kolom materi berisi <b>nilai terbaik</b> siswa pada materi itu; “—” berarti belum pernah mengerjakan materi tersebut. Tombol Export Excel mengunduh tabel ini (mengikuti filter kelas &amp; pencarian yang aktif) sebagai berkas .xlsx.</p>';
+  return h+"</div>";
+}
+function bestForMateri(rows,materi){
+  var best=new Map();
+  rows.forEach(function(r){
+    if(r.mode!==materi)return;
+    var k=studentKey(r),v=nilaiOf(r);
+    if(!best.has(k)||v>nilaiOf(best.get(k)))best.set(k,r);
+  });
+  return Array.from(best.values()).sort(function(a,b){
+    return nilaiOf(b)-nilaiOf(a)||num(b.akurasi)-num(a.akurasi);
+  });
+}
+function peringkatHTML(){
+  var rows=filteredRows();
+  var list=bestForMateri(rows,G.materiFilter);
+  var h='<div id="g-table-zone-inner">';
+  h+='<div class="g-label">Materi</div><select id="g-materi-sel" class="g-select">'+
+    MATERI.map(function(m){return '<option value="'+esc(m)+'"'+(G.materiFilter===m?" selected":"")+">"+esc(m)+"</option>";}).join("")+"</select>";
+  h+=statsHTML(rows.filter(function(r){return r.mode===G.materiFilter;}),list.length);
+  if(!list.length)return h+'<div class="g-empty">Belum ada nilai untuk materi ini pada cakupan terpilih.</div></div>';
+  h+='<div class="g-tablewrap"><table class="g-table"><tr><th>#</th><th>Nama</th><th>Kelas</th><th>Sekolah</th><th class="num">Nilai Terbaik</th><th class="num">Benar</th><th class="num">Poin</th><th class="num">Durasi</th><th>Waktu</th></tr>';
+  list.slice(0,20).forEach(function(r,i){
+    var medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+".";
+    h+="<tr><td class='g-top'>"+medal+"</td><td><b>"+esc(r.nama)+"</b></td><td>"+esc(r.kelas)+"</td><td>"+esc(r.sekolah)+
+      '</td><td class="num"><span class="g-nilai">'+fmtNilai(nilaiOf(r))+"</span></td><td class='num'>"+num(r.benar)+"/30</td><td class='num'>"+(r.poin!=null?String(r.poin).replace(".",","):"-")+"</td><td class='num'>"+fmtDur(r.durasi)+"</td><td class='g-mut'>"+fmtWaktu(r.createdAt)+"</td></tr>";
+  });
+  return h+"</table></div></div>";
+}
+function semuaHTML(){
+  var rows=filteredRows().slice(0,500);
+  var h='<div id="g-table-zone-inner">';
+  if(!rows.length)return h+'<div class="g-empty">Belum ada percobaan pada cakupan ini.</div></div>';
+  h+='<div class="g-tablewrap"><table class="g-table"><tr><th>#</th><th>Nama</th><th>Kelas</th><th>Sekolah</th><th>Materi</th><th class="num">Nilai</th><th class="num">Benar</th><th class="num">Poin</th><th class="num">Durasi</th><th>Waktu</th></tr>';
+  rows.forEach(function(r,i){
+    h+="<tr><td>"+(i+1)+"</td><td><b>"+esc(r.nama)+"</b></td><td>"+esc(r.kelas)+"</td><td>"+esc(r.sekolah)+"</td><td>"+esc(r.mode)+
+      '</td><td class="num"><span class="g-nilai">'+fmtNilai(nilaiOf(r))+"</span></td><td class='num'>"+num(r.benar)+"/30</td><td class='num'>"+(r.poin!=null?String(r.poin).replace(".",","):"-")+"</td><td class='num'>"+fmtDur(r.durasi)+"</td><td class='g-mut'>"+fmtWaktu(r.createdAt)+"</td></tr>";
+  });
+  return h+"</table></div></div>";
+}
+function kabupatenHTML(){
+  var map=bestMap(G.rows);
+  var students=Array.from(map.values());
+  var top=students.slice().sort(function(a,b){return avgBest(b)-avgBest(a);}).slice(0,20);
+  var h='<div class="g-sectiontitle">🏆 Top Siswa Kabupaten (rata-rata nilai terbaik per materi)</div>';
+  if(!top.length)h+='<div class="g-empty">Belum ada data.</div>';
+  else{
+    h+='<div class="g-tablewrap"><table class="g-table"><tr><th>#</th><th>Nama</th><th>Sekolah</th><th class="num">Rata-rata</th><th class="num">Materi Dikerjakan</th></tr>';
+    top.forEach(function(s,i){
+      var n=MATERI.filter(function(m){return s.bests[m]!=null;}).length;
+      var medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+".";
+      h+="<tr><td class='g-top'>"+medal+"</td><td><b>"+esc(s.nama)+"</b></td><td>"+esc(s.sekolah)+
+        '</td><td class="num"><span class="g-nilai">'+fmtNilai(avgBest(s))+"</span></td><td class='num'>"+n+"/6</td></tr>";
+    });
+    h+="</table></div>";
+  }
+  var bySchool=new Map();
+  students.forEach(function(s){
+    if(!bySchool.has(s.sekolah))bySchool.set(s.sekolah,[]);
+    bySchool.get(s.sekolah).push(s);
+  });
+  var rank=Array.from(bySchool.entries()).map(function(e){
+    var ss=e[1];
+    var avg=ss.reduce(function(a,s){return a+avgBest(s);},0)/ss.length;
+    var best=0;ss.forEach(function(s){MATERI.forEach(function(m){if(s.bests[m]!=null&&s.bests[m]>best)best=s.bests[m];});});
+    return{sekolah:e[0],siswa:ss.length,rata:avg,terbaik:best};
+  }).sort(function(a,b){return b.rata-a.rata;});
+  h+='<div class="g-sectiontitle">🏫 Peringkat Sekolah (rata-rata nilai terbaik siswa)</div>';
+  if(!rank.length)h+='<div class="g-empty">Belum ada data.</div>';
+  else{
+    h+='<div class="g-tablewrap"><table class="g-table"><tr><th>#</th><th>Sekolah</th><th class="num">Siswa</th><th class="num">Rata-rata</th><th class="num">Nilai Tertinggi</th></tr>';
+    rank.forEach(function(r,i){
+      h+="<tr><td>"+(i+1)+".</td><td><b>"+esc(r.sekolah)+"</b></td><td class='num'>"+r.siswa+"</td><td class='num'><span class='g-nilai'>"+fmtNilai(r.rata)+"</span></td><td class='num'>"+fmtNilai(r.terbaik)+"</td></tr>";
+    });
+    h+="</table></div>";
+  }
+  return h;
+}
+/* Catatan: zona tabel dibungkus agar filter tidak mengganggu fokus input */
+(function(){
+  var origRender=renderDash;
+  renderDash=function(){
+    origRender();
+    var zone=document.querySelector(".g-tabs");
+    var tz=document.getElementById("g-table-zone-inner");
+    if(tz&&!document.getElementById("g-table-zone")){
+      var d=document.createElement("div");d.id="g-table-zone";
+      tz.parentNode.insertBefore(d,tz);d.appendChild(tz);
+    }
+  };
+})();
+
+if(G.authed)loadData();else renderLogin();
+})();
+</script>
+</body></html>
