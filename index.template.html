@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Try Out TKA — Per Materi Esensial | Matematika Fase D</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --bg:#f1f2f6; --surface:#ffffff; --surface-muted:#eef0f4;
+  --text:#1c1c22; --muted:#6b6b76; --border:#e0e2e9;
+  --accent:#4f46e5; --on-accent:#ffffff; --focus:#4f46e5;
+  --shadow:rgba(20,20,40,.10); --ok:#1f9d63; --bad:#e5484d;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b0b10; --surface:#17171d; --surface-muted:#23232c;
+    --text:#f4f4f6; --muted:#a2a2b0; --border:#34343e;
+    --accent:#818cf8; --on-accent:#0b0b10; --focus:#818cf8;
+    --shadow:rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding:24px 16px}
+#tk-root{width:100%;max-width:780px}
+.tk-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 4px 18px var(--shadow)}
+.tk-title{font-size:24px;font-weight:800;text-align:center;margin:0 0 4px}
+.tk-sub{text-align:center;color:var(--muted);font-size:13.5px;margin:0 0 6px;line-height:1.55}
+.tk-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px}
+.tk-input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface-muted);color:var(--text);font-size:15px;font-weight:600}
+.tk-input:focus{outline:2px solid var(--focus);outline-offset:1px;border-color:var(--accent)}
+.tk-dd{position:relative}
+.tk-ddlist{position:absolute;top:100%;left:0;right:0;max-height:260px;overflow-y:auto;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;margin-top:4px;z-index:60;display:none;box-shadow:0 8px 24px var(--shadow)}
+.tk-dditem{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border)}
+.tk-dditem:last-child{border-bottom:none}
+.tk-dditem b{display:block;font-size:14px}
+.tk-dditem span{font-size:11px;color:var(--muted)}
+.tk-ddempty{padding:14px;text-align:center;color:var(--muted);font-size:13px}
+.tk-row{display:flex;flex-wrap:wrap;gap:8px}
+.tk-chip{flex:1 1 0;padding:11px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface-muted);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;text-align:center}
+.tk-chip.sel{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+.tk-kelasrow{display:flex;gap:8px}
+.tk-kelasrow .tk-chip{flex:1}
+.tk-kelasrow .tk-input{flex:0 0 110px}
+.tk-materi{display:block;width:100%;text-align:left;padding:14px 16px;border-radius:14px;border:1.5px solid var(--border);background:var(--surface-muted);color:var(--text);margin:8px 0;cursor:pointer}
+.tk-materi b{font-size:16px;display:block;line-height:1.35}
+.tk-materi span{display:block;font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45}
+.tk-materi .tk-best{font-size:12px;font-weight:800;color:var(--ok);margin-top:5px}
+.tk-materi.sel{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 1.5px var(--accent)}
+.tk-btn{width:100%;padding:14px;border:none;border-radius:14px;background:var(--accent);color:var(--on-accent);font-size:16px;font-weight:800;cursor:pointer;margin-top:18px}
+.tk-btn.ghost{background:var(--surface-muted);color:var(--text);border:1px solid var(--border);font-size:14px;font-weight:700}
+.tk-btn:disabled{opacity:.45;cursor:not-allowed}
+.tk-menu-msg{min-height:20px;text-align:center;font-weight:700;font-size:13px;color:var(--bad);margin-top:10px}
+.tk-credit{text-align:center;color:var(--muted);font-size:12px;font-weight:600;margin:12px 0 0}
+.tk-foot{margin-top:16px;font-size:12px;color:var(--muted);text-align:center;line-height:1.6}
+/* ===== Layar soal ===== */
+.tk-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.tk-head .tk-mname{font-weight:800;font-size:16px}
+.tk-time{font-weight:800;font-size:15px;background:var(--surface-muted);border:1px solid var(--border);border-radius:99px;padding:5px 14px}
+.tk-time.warn{color:var(--bad);border-color:var(--bad)}
+.tk-tbar{height:7px;background:var(--surface-muted);border-radius:99px;overflow:hidden;margin:8px 0 4px}
+.tk-tfill{height:100%;background:var(--accent);border-radius:99px;transition:width .5s linear}
+.tk-tfill.warn{background:var(--bad)}
+.tk-meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:10px}
+.tk-q{font-size:16.5px;line-height:1.65}
+.tk-q p{margin:0 0 10px}
+.tk-img{max-width:100%;height:auto;display:block;margin:10px auto;border-radius:10px;background:#fff;padding:6px;border:1px solid var(--border)}
+.tk-tabel{border-collapse:collapse;margin:10px auto;font-size:15px;max-width:100%}
+.tk-tabel th,.tk-tabel td{border:1px solid var(--border);padding:6px 12px;text-align:center}
+.tk-tabel th{background:var(--surface-muted);font-weight:700}
+.tk-hint{font-size:13px;color:var(--muted);font-weight:700;margin:14px 0 2px}
+.tk-opt{display:flex;align-items:flex-start;gap:11px;width:100%;text-align:left;padding:12px 14px;margin:8px 0;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:15.5px;line-height:1.5}
+.tk-opt .tk-letter{flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:2px solid var(--muted);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;margin-top:0}
+.tk-opt.sel{border-color:var(--accent);background:var(--surface-muted)}
+.tk-opt.sel .tk-letter{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tk-opt .tk-obody{flex:1}
+.tk-katrow{border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin:8px 0}
+.tk-katrow .tk-stmt{font-size:15.5px;line-height:1.55;margin-bottom:10px}
+.tk-bs{display:flex;gap:8px}
+.tk-bs button{flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-muted);color:var(--text);font-weight:800;font-size:14px;cursor:pointer}
+.tk-bs button.selB{background:var(--ok);border-color:var(--ok);color:#fff}
+.tk-bs button.selS{background:var(--bad);border-color:var(--bad);color:#fff}
+.tk-navrow{display:flex;gap:8px;margin-top:16px}
+.tk-navrow .tk-btn{margin-top:0;flex:1;padding:12px;font-size:14.5px}
+.tk-pal{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-top:10px}
+.tk-pal button{padding:8px 0;border-radius:9px;border:1.5px solid var(--border);background:var(--surface-muted);color:var(--text);font-weight:700;cursor:pointer;font-size:13px}
+.tk-pal button.done{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tk-pal button.cur{outline:2px solid var(--accent);outline-offset:1px}
+@media (max-width:560px){.tk-pal{grid-template-columns:repeat(6,1fr)}}
+.tk-palabel{font-size:12px;color:var(--muted);font-weight:700;margin-top:18px;text-transform:uppercase;letter-spacing:.06em}
+/* ===== Hasil ===== */
+.tk-big{font-size:56px;font-weight:800;text-align:center;margin:4px 0}
+.tk-msg{text-align:center;color:var(--muted);font-size:14.5px;margin:0 0 4px;line-height:1.55}
+.tk-namecard{text-align:center;background:var(--surface-muted);border-radius:12px;padding:11px;margin:12px 0 4px;font-size:15px;font-weight:700;line-height:1.5}
+.tk-namecard span{font-size:12px;font-weight:600;color:var(--muted)}
+.tk-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 4px}
+.tk-stat{background:var(--surface-muted);border-radius:12px;padding:12px;text-align:center}
+.tk-stat b{font-size:19px;display:block}
+.tk-stat span{font-size:11.5px;color:var(--muted);line-height:1.4;display:block;margin-top:2px}
+.tk-savestat{text-align:center;font-size:13px;font-weight:700;margin:8px 0 0}
+.tk-savestat.ok{color:var(--ok)}.tk-savestat.wait{color:var(--muted)}.tk-savestat.fail{color:var(--bad)}
+/* ===== Modal konfirmasi ===== */
+.tk-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
+.tk-modal{background:var(--surface);color:var(--text);border-radius:16px;padding:22px;max-width:430px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.tk-modal h3{margin:0 0 8px;font-size:18px}
+.tk-modal p{margin:0 0 6px;font-size:14.5px;line-height:1.6;color:var(--muted)}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+</style>
+</head>
+<body>
+<div id="tk-root">
+  <div class="tk-card" id="tk-body"></div>
+  <p class="tk-foot">Try Out TKA Matematika — Per Materi Esensial &bull; 30 soal &bull; 60 menit<br>Pilihan Ganda &bull; PGK-MCMA (Jawaban benar lebih dari satu) &bull; PGK-Kategori (Benar/Salah)</p>
+  <p class="tk-foot">Design by <a href="https://rasa.web.id" target="_blank" rel="noopener">rasa.web.id</a></p>
+</div>
+<div id="tk-modal-root"></div>
+<script>
+(function(){
+"use strict";
+/* ===== Firebase (database nilai) ===== */
+var FB=null;
+try{
+  firebase.initializeApp({
+    apiKey: "AIzaSyCRJo9Xou0X9K3ZGlvmArtUOod9ohR4lQk",
+    authDomain: "database-mpi-spendaka.firebaseapp.com",
+    projectId: "database-mpi-spendaka",
+    storageBucket: "database-mpi-spendaka.firebasestorage.app",
+    messagingSenderId: "909550540115",
+    appId: "1:909550540115:web:efcbb3efc2d138306bfda6"
+  });
+  FB=firebase.firestore();
+}catch(e){FB=null;}
+var SCORE_COLLECTION="tryout_tka_kabupaten";
+var TOTAL_Q=30, TOTAL_TIME=3600; /* 60 menit */
+/* Daftar SMP se-Kabupaten Pacitan (nama, NPSN, kecamatan) — sumber: data publik Kemendikdasmen 2026 */
+var SCHOOLS=[
+["SMP NEGERI 1 PACITAN","20510976","Pacitan"],
+["SMP NEGERI 2 PACITAN","20510956","Pacitan"],
+["SMP NEGERI 3 PACITAN","20510947","Pacitan"],
+["SMP NEGERI 4 PACITAN","20510949","Pacitan"],
+["SMP NEGERI 5 PACITAN SATU ATAP","20570232","Pacitan"],
+["SMP PGRI PACITAN","20511063","Pacitan"],
+["SMP ISLAM TERPADU AR-RAHMAH","20574716","Pacitan"],
+["SMP MODEL AL-ISTIQOMAH PACITAN","20555834","Pacitan"],
+["SMP ISLAM NAHDLATUSSUBBAN","20570463","Pacitan"],
+["SMP NEGERI 1 KEBONAGUNG","20510967","Kebonagung"],
+["SMP NEGERI 2 KEBONAGUNG","20510969","Kebonagung"],
+["SMP NEGERI 3 KEBONAGUNG SATU ATAP","20573297","Kebonagung"],
+["SMP PGRI KEBONAGUNG","20511075","Kebonagung"],
+["SMP NEGERI 1 PUNUNG","20510974","Punung"],
+["SMP NEGERI 2 PUNUNG","20510944","Punung"],
+["SMP NEGERI 3 PUNUNG","20510954","Punung"],
+["SMP NEGERI 1 PRINGKUKU","20510975","Pringkuku"],
+["SMP NEGERI 2 PRINGKUKU","20510945","Pringkuku"],
+["SMP NEGERI 3 PRINGKUKU","20510955","Pringkuku"],
+["SMP PGRI SUGIHWARAS","20510965","Pringkuku"],
+["SMP MUHAMMADIYAH BOARDING SCHOOL PRINGKUKU","70014702","Pringkuku"],
+["SMP NEGERI 1 DONOROJO","20510959","Donorojo"],
+["SMP NEGERI 2 DONOROJO","20510970","Donorojo"],
+["SMP NEGERI 3 DONOROJO","20510939","Donorojo"],
+["SMP NEGERI 4 DONOROJO SATU ATAP","20540380","Donorojo"],
+["SMP PGRI GENDARAN","20511077","Donorojo"],
+["SMP NEGERI 1 NAWANGAN","20510968","Nawangan"],
+["SMP NEGERI 2 NAWANGAN","20510958","Nawangan"],
+["SMP NEGERI 3 NAWANGAN","20510938","Nawangan"],
+["SMP NEGERI 4 NAWANGAN","20510950","Nawangan"],
+["SMP PGRI GONDANG","20511076","Nawangan"],
+["SMP ISLAM TERPADU AL BANNA NAWANGAN","70004101","Nawangan"],
+["SMP NEGERI 1 BANDAR","20510960","Bandar"],
+["SMP NEGERI 2 BANDAR","20510971","Bandar"],
+["SMP NEGERI 3 BANDAR","20510940","Bandar"],
+["SMP NEGERI 4 BANDAR SATU ATAP","20557250","Bandar"],
+["SMP ISLAM TERPADU MA ARIF BANDAR","69760669","Bandar"],
+["SMP PGRI BANDAR","20511078","Bandar"],
+["SMP NEGERI 1 TEGALOMBO","20511021","Tegalombo"],
+["SMP NEGERI 2 TEGALOMBO","20510942","Tegalombo"],
+["SMP NEGERI 3 TEGALOMBO","20510952","Tegalombo"],
+["SMP NEGERI 4 TEGALOMBO SATU ATAP","20573296","Tegalombo"],
+["SMP NEGERI 5 TEGALOMBO SATU ATAP","69766201","Tegalombo"],
+["SMP HASYIM ASY'ARI KASIHAN","20570231","Tegalombo"],
+["SMP MUHAMMADIYAH 3","20511081","Tegalombo"],
+["SMP PGRI TEGALOMBO","20510964","Tegalombo"],
+["SMP NEGERI 1 TULAKAN","20511009","Tulakan"],
+["SMP NEGERI 2 TULAKAN","20510941","Tulakan"],
+["SMP NEGERI 3 TULAKAN","20510951","Tulakan"],
+["SMP NEGERI 4 TULAKAN","20510948","Tulakan"],
+["SMP HASYIM ASY ARI TULAKAN","20511064","Tulakan"],
+["SMP MUHAMMADIYAH 2 TULAKAN","20511073","Tulakan"],
+["SMP PGRI MONTONGAN","20511074","Tulakan"],
+["SMP PGRI TULAKAN","20510963","Tulakan"],
+["SMP NEGERI 1 NGADIROJO","20510937","Ngadirojo"],
+["SMP NEGERI 2 NGADIROJO","20510957","Ngadirojo"],
+["SMP NEGERI 3 NGADIROJO","20510946","Ngadirojo"],
+["SMP NEGERI 4 NGADIROJO SATU ATAP","20540381","Ngadirojo"],
+["SMP NEGERI 5 NGADIROJO SATU ATAP","20557251","Ngadirojo"],
+["SMP MIFTAHUL HUDA","20511072","Ngadirojo"],
+["SMP MUHAMMADIYAH 1 NGADIROJO","20511080","Ngadirojo"],
+["SMP NEGERI 1 SUDIMORO","20510973","Sudimoro"],
+["SMP NEGERI 2 SUDIMORO","20510943","Sudimoro"],
+["SMP NEGERI 3 SUDIMORO","20510953","Sudimoro"],
+["SMP NEGERI 4 SUDIMORO SATU ATAP","20549693","Sudimoro"],
+["SMP NEGERI 5 SUDIMORO SATU ATAP","20570242","Sudimoro"],
+["SMP NEGERI 6 SUDIMORO","69831500","Sudimoro"],
+["SMP NEGERI 1 ARJOSARI","20510961","Arjosari"],
+["SMP NEGERI 2 ARJOSARI","20510972","Arjosari"],
+["SMP NEGERI 3 ARJOSARI SATU ATAP","20549692","Arjosari"],
+["SMP NEGERI 4 ARJOSARI SATU ATAP","20573295","Arjosari"],
+["SMP PGRI ARJOSARI","20511079","Arjosari"]
+];
+/* ===== Bank soal (hasil konversi dari paket Seri Kabupaten) ===== */
+var BANK=%%BANK%%;
+
+/* ===== Penyimpanan lokal ===== */
+var store=(function(){
+  var KEY="tka-kab-state-v1";
+  function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==="object")return s;}catch(e){}return null;}
+  return{
+    get:function(d){var s=load();return s||d;},
+    set:function(s){try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}}
+  };
+})();
+function defaults(){return{screen:"menu",nama:"",jenjang:"",rombel:"",sekolah:"",materi:0,
+  answers:null,cur:0,startAt:0,deadline:0,result:null,saved:0,bests:{},menuMsg:null,confirmOpen:false,copied:false};}
+var S=store.get(defaults());
+if(S.screen==="game"&&(!S.answers||!S.deadline))S.screen="menu";
+function save(){store.set(S);}
+function set(nx,keepScroll){
+  var y=window.scrollY||0;
+  S=Object.assign({},S,nx);save();render();
+  if(keepScroll)window.scrollTo(0,y);
+}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function fmtNilai(n){return (Math.round(n*10)/10).toFixed(1).replace(".",",");}
+function fmtPoin(p){return String(Math.round(p*100)/100).replace(".",",");}
+function fmtDur(sec){
+  sec=Math.max(0,Math.round(sec));
+  var m=Math.floor(sec/60),d=sec%60;
+  return m+" menit "+(d<10?"0":"")+d+" detik";
+}
+function fmtClock(sec){
+  sec=Math.max(0,Math.ceil(sec));
+  var m=Math.floor(sec/60),d=sec%60;
+  return (m<10?"0":"")+m+":"+(d<10?"0":"")+d;
+}
+function kelasStr(){return (S.jenjang||"")+(S.rombel||"");}
+function materiObj(){return BANK[S.materi];}
+
+/* ===== Combo sekolah (pola game lama) ===== */
+function schoolComboHTML(){
+  return '<div class="tk-dd" id="tk-sdd">'+
+    '<input id="tk-sekolah-input" class="tk-input" type="text" autocomplete="off" placeholder="Ketik untuk cari sekolah..." value="'+esc(S.sekolah)+'">'+
+    '<div id="tk-sekolah-list" class="tk-ddlist"></div></div>';
+}
+function renderSchoolList(q){
+  var list=document.getElementById("tk-sekolah-list");if(!list)return;
+  var query=(q||"").trim().toLowerCase();
+  var matches=SCHOOLS.filter(function(s){return !query||s[0].toLowerCase().indexOf(query)>=0||s[2].toLowerCase().indexOf(query)>=0;}).slice(0,60);
+  list.innerHTML=matches.length?matches.map(function(s){
+    return '<div class="tk-dditem" data-v="'+esc(s[0])+'"><b>'+esc(s[0])+'</b><span>Kec. '+esc(s[2])+"</span></div>";
+  }).join(""):'<div class="tk-ddempty">Sekolah tidak ditemukan</div>';
+  list.style.display="block";
+}
+function hideSchoolList(){var l=document.getElementById("tk-sekolah-list");if(l)l.style.display="none";}
+function bindSchoolCombo(){
+  var inp=document.getElementById("tk-sekolah-input"),list=document.getElementById("tk-sekolah-list");
+  if(!inp||!list)return;
+  inp.addEventListener("input",function(){renderSchoolList(inp.value);});
+  inp.addEventListener("focus",function(){renderSchoolList(inp.value);});
+  list.addEventListener("click",function(e){
+    var it=e.target.closest(".tk-dditem");if(!it)return;
+    S.sekolah=it.getAttribute("data-v");save();
+    inp.value=S.sekolah;hideSchoolList();
+  });
+}
+function resolveSchool(){
+  var inp=document.getElementById("tk-sekolah-input");
+  var typed=inp?inp.value.trim():"";
+  if(!typed)return "";
+  var tl=typed.toLowerCase();
+  if(S.sekolah&&S.sekolah.toLowerCase()===tl)return S.sekolah;
+  for(var i=0;i<SCHOOLS.length;i++)if(SCHOOLS[i][0].toLowerCase()===tl)return SCHOOLS[i][0];
+  return "";
+}
+function syncMenuInputs(){
+  var nm=document.getElementById("tk-nama"),rb=document.getElementById("tk-rombel");
+  if(nm)S.nama=nm.value;
+  if(rb)S.rombel=rb.value.trim().toUpperCase().slice(0,3);
+}
+
+/* ===== Alur sesi ===== */
+function blankAnswers(items){
+  return items.map(function(it){
+    if(it.t==="pg")return null;
+    if(it.t==="mcma")return [];
+    return [null,null,null,null];
+  });
+}
+function isDone(it,a){
+  if(a==null)return false;
+  if(it.t==="pg")return a!==null;
+  if(it.t==="mcma")return a.length>0;
+  return a.every(function(x){return x!==null;});
+}
+function doneCount(){
+  var items=materiObj().items,c=0;
+  for(var i=0;i<items.length;i++)if(isDone(items[i],S.answers[i]))c++;
+  return c;
+}
+function startGame(){
+  syncMenuInputs();
+  var sk=resolveSchool();
+  if(!S.nama.trim()||!S.jenjang||!sk){
+    set({menuMsg:"Isi nama, pilih kelas, dan pilih sekolah dari daftar ya!"});return;
+  }
+  S.sekolah=sk;
+  var now=Date.now();
+  set({screen:"game",answers:blankAnswers(materiObj().items),cur:0,
+    startAt:now,deadline:now+TOTAL_TIME*1000,result:null,saved:0,menuMsg:null,confirmOpen:false,copied:false});
+  window.scrollTo(0,0);
+}
+function grade(){
+  var items=materiObj().items,pts=0;
+  var d={pg:0,mcma:0,katStmt:0,katFull:0,full:0};
+  items.forEach(function(it,i){
+    var a=S.answers?S.answers[i]:null;
+    if(it.t==="pg"){
+      if(a===it.k){pts+=1;d.pg++;d.full++;}
+    }else if(it.t==="mcma"){
+      var ok=a&&a.length===it.k.length&&it.k.every(function(k){return a.indexOf(k)>=0;});
+      if(ok){pts+=1;d.mcma++;d.full++;}
+    }else{
+      var c=0;
+      for(var j=0;j<4;j++)if(a&&a[j]===it.k[j])c++;
+      pts+=c*0.25;d.katStmt+=c;
+      if(c===4){d.katFull++;d.full++;}
+    }
+  });
+  return{poin:pts,nilai:Math.round(pts/TOTAL_Q*1000)/10,d:d};
+}
+function finishGame(auto){
+  if(S.screen!=="game")return;
+  var g=grade();
+  var used=auto?TOTAL_TIME:Math.min(TOTAL_TIME,Math.max(0,Math.round((Date.now()-S.startAt)/1000)));
+  var bests=Object.assign({},S.bests);
+  var mname=materiObj().nama;
+  if(!bests[mname]||g.nilai>bests[mname])bests[mname]=g.nilai;
+  set({screen:"result",confirmOpen:false,bests:bests,saved:FB?1:3,
+    result:{nilai:g.nilai,poin:g.poin,d:g.d,durasi:used,auto:!!auto,materi:mname}});
+  window.scrollTo(0,0);
+  if(FB)saveScore(g,used);
+}
+function saveScore(g,used){
+  var payload={
+    nama:S.nama.trim(),kelas:kelasStr(),sekolah:S.sekolah,mode:materiObj().nama,
+    skor:g.nilai,nilai:g.nilai,poin:g.poin,benar:g.d.full,total:TOTAL_Q,
+    benarPG:g.d.pg,benarMCMA:g.d.mcma,benarKategori:g.d.katStmt,katPenuh:g.d.katFull,
+    akurasi:Math.round(g.nilai),durasi:used,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    FB.collection(SCORE_COLLECTION).add(payload)
+      .then(function(){if(S.screen==="result")set({saved:2},true);})
+      .catch(function(){if(S.screen==="result")set({saved:3},true);});
+  }catch(e){if(S.screen==="result")set({saved:3},true);}
+}
+
+/* ===== Hitung mundur total 60 menit ===== */
+function remainSec(){return Math.max(0,(S.deadline-Date.now())/1000);}
+setInterval(function(){
+  if(S.screen!=="game")return;
+  var r=remainSec();
+  var t=document.getElementById("tk-time"),bar=document.getElementById("tk-tfill");
+  if(t){t.textContent="⏱ "+fmtClock(r);t.classList.toggle("warn",r<=300);}
+  if(bar){bar.style.width=(r/TOTAL_TIME*100)+"%";bar.classList.toggle("warn",r<=300);}
+  if(r<=0)finishGame(true);
+},400);
+
+/* ===== Tampilan: Menu ===== */
+function menuHTML(){
+  var h='<h2 class="tk-title">Try Out TKA</h2>'+
+    '<p class="tk-sub"><b>Per Materi Esensial</b> — Matematika Fase D<br>MGMP Matematika SMP Kabupaten Pacitan</p>'+
+    '<p class="tk-sub">Satu sesi = <b>30 soal</b> penuh dari paket yang dipilih, waktu total <b>60 menit</b> (tanpa batas waktu per soal). Jawaban masih bisa diubah sebelum dikumpulkan.</p>';
+  h+='<div class="tk-label">Nama Siswa</div><input id="tk-nama" class="tk-input" type="text" maxlength="30" placeholder="Tulis namamu..." value="'+esc(S.nama)+'">';
+  h+='<div class="tk-label">Kelas</div><div class="tk-kelasrow">'+
+    ["7","8","9"].map(function(j){return '<button class="tk-chip'+(S.jenjang===j?" sel":"")+'" data-act="jenjang" data-v="'+j+'">Kelas '+j+"</button>";}).join("")+
+    '<input id="tk-rombel" class="tk-input" type="text" maxlength="3" placeholder="Rombel" value="'+esc(S.rombel)+'"></div>';
+  h+='<div class="tk-label">Nama Sekolah</div>'+schoolComboHTML();
+  h+='<div class="tk-label">Pilih Materi</div>';
+  h+=BANK.map(function(m,i){
+    var best=S.bests[m.nama];
+    return '<button class="tk-materi'+(S.materi===i?" sel":"")+'" data-act="materi" data-v="'+i+'"><b>'+esc(m.nama)+"</b><span>"+esc(m.sub)+"</span>"+
+      (best!=null?'<span class="tk-best">Nilai terbaikmu: '+fmtNilai(best)+"</span>":"")+"</button>";
+  }).join("");
+  h+='<button class="tk-btn" data-act="start">Mulai Try Out</button>';
+  h+='<div class="tk-menu-msg">'+(S.menuMsg?esc(S.menuMsg):"")+"</div>";
+  h+='<p class="tk-credit">Dibuat oleh MGMP Matematika SMP Kabupaten Pacitan</p>';
+  h+='<p class="tk-credit">Soal sesuai kerangka asesmen TKA<br>Perkaban BSKAP No. 047/H/AN/2025</p>';
+  h+='<p class="tk-credit">Design by <a href="https://rasa.web.id" target="_blank" rel="noopener">rasa.web.id</a></p>';
+  return h;
+}
+
+/* ===== Tampilan: Soal ===== */
+function questionHTML(){
+  var m=materiObj(),it=m.items[S.cur],a=S.answers[S.cur];
+  var r=remainSec();
+  var h='<div class="tk-head"><span class="tk-mname">'+esc(m.nama)+'</span>'+
+    '<span class="tk-time'+(r<=300?" warn":"")+'" id="tk-time">⏱ '+fmtClock(r)+"</span></div>";
+  h+='<div class="tk-tbar"><div class="tk-tfill'+(r<=300?" warn":"")+'" id="tk-tfill" style="width:'+(r/TOTAL_TIME*100)+'%"></div></div>';
+  h+='<div class="tk-meta"><span>Soal '+(S.cur+1)+" dari "+TOTAL_Q+'</span><span>Terjawab: '+doneCount()+"/"+TOTAL_Q+"</span></div>";
+  h+='<div class="tk-q">'+it.q+"</div>";
+  var letters=["A","B","C","D"];
+  if(it.t==="pg"){
+    h+='<div class="tk-hint">Pilih satu jawaban yang paling tepat.</div>';
+    h+=it.o.map(function(o,i){
+      return '<button class="tk-opt'+(a===i?" sel":"")+'" data-act="pg" data-v="'+i+'"><span class="tk-letter">'+letters[i]+'</span><span class="tk-obody">'+o+"</span></button>";
+    }).join("");
+  }else if(it.t==="mcma"){
+    h+='<div class="tk-hint">⚠️ Pilihan ganda kompleks — pilih <b>semua</b> jawaban yang benar (bisa lebih dari satu).</div>';
+    h+=it.o.map(function(o,i){
+      var sel=a&&a.indexOf(i)>=0;
+      return '<button class="tk-opt'+(sel?" sel":"")+'" data-act="mcma" data-v="'+i+'"><span class="tk-letter">'+(sel?"✓":letters[i])+'</span><span class="tk-obody">'+o+"</span></button>";
+    }).join("");
+  }else{
+    h+='<div class="tk-hint">Tentukan <b>Benar</b> atau <b>Salah</b> untuk setiap pernyataan.</div>';
+    h+=it.s.map(function(s,j){
+      var v=a?a[j]:null;
+      return '<div class="tk-katrow"><div class="tk-stmt"><b>('+(j+1)+")</b> "+s+'</div><div class="tk-bs">'+
+        '<button data-act="kat" data-i="'+j+'" data-v="1" class="'+(v===true?"selB":"")+'">✔ Benar</button>'+
+        '<button data-act="kat" data-i="'+j+'" data-v="0" class="'+(v===false?"selS":"")+'">✘ Salah</button></div></div>';
+    }).join("");
+  }
+  h+='<div class="tk-navrow">'+
+    '<button class="tk-btn ghost" data-act="prev"'+(S.cur===0?" disabled":"")+'>← Sebelumnya</button>'+
+    (S.cur<TOTAL_Q-1
+      ? '<button class="tk-btn" data-act="next" style="margin-top:0">Berikutnya →</button>'
+      : '<button class="tk-btn" data-act="finish" style="margin-top:0">✔ Selesai &amp; Kumpulkan</button>')+
+    "</div>";
+  h+='<div class="tk-palabel">Palet Nomor Soal</div><div class="tk-pal">';
+  h+=m.items.map(function(it2,i){
+    var cls=(i===S.cur?"cur":"")+(isDone(it2,S.answers[i])?" done":"");
+    return '<button class="'+cls+'" data-act="pal" data-v="'+i+'">'+(i+1)+"</button>";
+  }).join("");
+  h+="</div>";
+  if(S.cur<TOTAL_Q-1)h+='<button class="tk-btn" data-act="finish">✔ Selesai &amp; Kumpulkan</button>';
+  return h;
+}
+function modalHTML(){
+  if(!S.confirmOpen)return "";
+  var done=doneCount(),sisa=TOTAL_Q-done;
+  return '<div class="tk-overlay"><div class="tk-modal"><h3>Kumpulkan jawaban?</h3>'+
+    "<p>Kamu sudah menjawab <b>"+done+" dari "+TOTAL_Q+" soal</b>."+
+    (sisa>0?" Masih ada <b>"+sisa+" soal</b> yang belum dijawab tuntas — soal itu akan dinilai dari jawaban yang ada (bisa 0 poin).":"")+
+    "</p><p>Setelah dikumpulkan, jawaban tidak bisa diubah lagi.</p>"+
+    '<div class="tk-navrow"><button class="tk-btn ghost" data-act="cancelFinish">Kembali</button>'+
+    '<button class="tk-btn" data-act="confirmFinish" style="margin-top:0">Ya, Kumpulkan</button></div></div></div>';
+}
+
+/* ===== Tampilan: Hasil ===== */
+function saveStatHTML(){
+  if(S.saved===2)return '<p class="tk-savestat ok">✅ Nilai tersimpan di database</p>';
+  if(S.saved===1)return '<p class="tk-savestat wait">⏳ Menyimpan nilai...</p>';
+  return '<p class="tk-savestat fail">⚠️ Nilai tidak tersimpan (periksa koneksi)</p>';
+}
+function resultHTML(){
+  var r=S.result,d=r.d;
+  var msg;
+  if(r.nilai>=90)msg="Luar biasa! Kamu siap menghadapi TKA!";
+  else if(r.nilai>=75)msg="Hebat! Sedikit lagi sempurna.";
+  else if(r.nilai>=55)msg="Bagus! Terus berlatih pada soal yang belum dikuasai.";
+  else msg="Jangan menyerah — pelajari lagi materinya dan coba lagi ya!";
+  var h='<h2 class="tk-title">Selesai!</h2><p class="tk-msg">'+msg+"</p>";
+  if(r.auto)h+='<p class="tk-msg">⏰ Waktu 60 menit habis — sesi diselesaikan otomatis dan dinilai dari jawaban yang ada.</p>';
+  h+='<div class="tk-namecard">👤 '+esc(S.nama)+" &bull; Kelas "+esc(kelasStr())+"<br><span>"+esc(S.sekolah)+"</span></div>";
+  h+=saveStatHTML();
+  h+='<div class="tk-big">'+fmtNilai(r.nilai)+"</div>";
+  h+='<p class="tk-msg">Nilai akhir — Materi: <b>'+esc(r.materi)+"</b></p>";
+  h+='<div class="tk-stats">';
+  h+='<div class="tk-stat"><b>'+d.pg+"/20</b><span>Pilihan Ganda benar</span></div>";
+  h+='<div class="tk-stat"><b>'+d.mcma+"/5</b><span>PGK-MCMA benar (persis)</span></div>";
+  h+='<div class="tk-stat"><b>'+d.katStmt+"/20</b><span>Pernyataan Kategori tepat ("+d.katFull+"/5 soal penuh)</span></div>";
+  h+='<div class="tk-stat"><b>'+fmtPoin(r.poin)+"/30</b><span>Total poin</span></div>";
+  h+='<div class="tk-stat"><b>'+fmtDur(r.durasi)+'</b><span>Waktu tempuh</span></div>';
+  h+='<div class="tk-stat"><b>'+d.full+"/30</b><span>Soal bernilai penuh</span></div>";
+  h+="</div>";
+  h+='<button class="tk-btn" data-act="copy">'+(S.copied?"✅ Hasil Tersalin!":"📋 Salin Hasil")+"</button>";
+  h+='<button class="tk-btn ghost" data-act="again">↻ Kerjakan Lagi Materi Ini</button>';
+  h+='<button class="tk-btn ghost" data-act="menu">Ganti Materi</button>';
+  return h;
+}
+function copyText(){
+  var r=S.result,d=r.d;
+  var txt="🏆 Try Out TKA — Per Materi Esensial\n"+
+    "Nama: "+S.nama.trim()+"\n"+
+    "Kelas: "+kelasStr()+"\n"+
+    "Sekolah: "+S.sekolah+"\n"+
+    "Materi: "+r.materi+"\n"+
+    "Nilai: "+fmtNilai(r.nilai)+"\n"+
+    "Benar — PG: "+d.pg+"/20 • MCMA: "+d.mcma+"/5 • Kategori: "+d.katStmt+"/20 pernyataan\n"+
+    "Waktu: "+fmtDur(r.durasi);
+  function done(){set({copied:true},true);setTimeout(function(){if(S.screen==="result")set({copied:false},true);},2200);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(function(){fallback();});
+  }else fallback();
+  function fallback(){
+    var ta=document.createElement("textarea");
+    ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand("copy");}catch(e){}
+    document.body.removeChild(ta);done();
+  }
+}
+
+/* ===== Render & peristiwa ===== */
+function render(){
+  var body=document.getElementById("tk-body");
+  if(S.screen==="menu"){body.innerHTML=menuHTML();bindSchoolCombo();}
+  else if(S.screen==="game")body.innerHTML=questionHTML();
+  else body.innerHTML=resultHTML();
+  document.getElementById("tk-modal-root").innerHTML=(S.screen==="game")?modalHTML():"";
+}
+document.addEventListener("click",function(e){
+  if(!e.target.closest("#tk-sdd"))hideSchoolList();
+});
+document.getElementById("tk-body").addEventListener("click",function(e){
+  var el=e.target.closest("[data-act]");if(!el||el.disabled)return;
+  var act=el.getAttribute("data-act"),v=el.getAttribute("data-v");
+  if(act==="jenjang"){syncMenuInputs();set({jenjang:v,menuMsg:null},true);}
+  else if(act==="materi"){syncMenuInputs();set({materi:parseInt(v,10),menuMsg:null},true);}
+  else if(act==="start")startGame();
+  else if(act==="pg"){var a=S.answers.slice();a[S.cur]=parseInt(v,10);set({answers:a},true);}
+  else if(act==="mcma"){
+    var a2=S.answers.slice();var cur=a2[S.cur].slice();var iv=parseInt(v,10);
+    var ix=cur.indexOf(iv);if(ix>=0)cur.splice(ix,1);else cur.push(iv);
+    cur.sort();a2[S.cur]=cur;set({answers:a2},true);
+  }
+  else if(act==="kat"){
+    var a3=S.answers.slice();var row=a3[S.cur].slice();
+    row[parseInt(el.getAttribute("data-i"),10)]=(v==="1");
+    a3[S.cur]=row;set({answers:a3},true);
+  }
+  else if(act==="pal")set({cur:parseInt(v,10)});
+  else if(act==="prev")set({cur:Math.max(0,S.cur-1)});
+  else if(act==="next")set({cur:Math.min(TOTAL_Q-1,S.cur+1)});
+  else if(act==="finish")set({confirmOpen:true},true);
+  else if(act==="again"){
+    var now=Date.now();
+    set({screen:"game",answers:blankAnswers(materiObj().items),cur:0,startAt:now,
+      deadline:now+TOTAL_TIME*1000,result:null,saved:0,confirmOpen:false,copied:false});
+    window.scrollTo(0,0);
+  }
+  else if(act==="menu")set({screen:"menu",confirmOpen:false,menuMsg:null});
+  else if(act==="copy")copyText();
+});
+document.getElementById("tk-modal-root").addEventListener("click",function(e){
+  var el=e.target.closest("[data-act]");if(!el)return;
+  var act=el.getAttribute("data-act");
+  if(act==="cancelFinish")set({confirmOpen:false},true);
+  else if(act==="confirmFinish")finishGame(false);
+});
+/* Bila waktu habis saat halaman tidak dibuka, selesaikan saat dimuat */
+if(S.screen==="game"&&remainSec()<=0)finishGame(true);else render();
+})();
+</script>
+</body>
+</html>
